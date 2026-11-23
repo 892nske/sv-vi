@@ -1,0 +1,82 @@
+% 変分推論による確率的ボラティリティモデルの高速ベイズ推定（社内限定）
+% コンパイル：LuaLaTeX（Overleaf では Menu → Compiler → LuaLaTeX。latexmkrc でも指定済み）
+% 参考文献：biblatex + biber（Overleaf は自動で biber を実行する）
+\documentclass[a4paper,11pt]{ltjsarticle}
+
+\usepackage[margin=25mm]{geometry}
+\usepackage{amsmath,amssymb,bm}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage[
+  backend=biber,
+  style=authoryear,
+  maxcitenames=2,
+  maxbibnames=10,
+  giveninits=true,
+  uniquename=false,
+  uniquelist=false,
+  dashed=false,
+]{biblatex}
+\addbibresource{references.bib}
+\usepackage[hidelinks]{hyperref}
+\usepackage[nameinlink,noabbrev]{cleveref}
+
+% ---------------------------------------------------------------- 相互参照の書式（日本語）
+% \jacref{型}{前置}{後置}：単独「第5章」、複数「第5章・第7章」、範囲「第5章〜第8章」
+\newcommand{\jacref}[3]{%
+  \crefformat{#1}{##2#2##1#3##3}%
+  \Crefformat{#1}{##2#2##1#3##3}%
+  \crefmultiformat{#1}{##2#2##1#3##3}{・##2#2##1#3##3}{・##2#2##1#3##3}{・##2#2##1#3##3}%
+  \Crefmultiformat{#1}{##2#2##1#3##3}{・##2#2##1#3##3}{・##2#2##1#3##3}{・##2#2##1#3##3}%
+  \crefrangeformat{#1}{##3#2##1#3##4〜##5#2##2#3##6}%
+  \Crefrangeformat{#1}{##3#2##1#3##4〜##5#2##2#3##6}%
+  \crefrangemultiformat{#1}{##3#2##1#3##4〜##5#2##2#3##6}{・##3#2##1#3##4〜##5#2##2#3##6}{・##3#2##1#3##4〜##5#2##2#3##6}{・##3#2##1#3##4〜##5#2##2#3##6}%
+  \Crefrangemultiformat{#1}{##3#2##1#3##4〜##5#2##2#3##6}{・##3#2##1#3##4〜##5#2##2#3##6}{・##3#2##1#3##4〜##5#2##2#3##6}{・##3#2##1#3##4〜##5#2##2#3##6}%
+}
+\jacref{section}{第}{章}
+\jacref{subsection}{}{節}
+\jacref{subsubsection}{}{節}
+\jacref{appendix}{付録}{}
+\jacref{subappendix}{付録}{}
+\jacref{figure}{図}{}
+\jacref{table}{表}{}
+\jacref{equation}{式(}{)}
+
+% ---------------------------------------------------------------- 記法
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\KL}{\mathrm{KL}}
+\newcommand{\ELBO}{\mathrm{ELBO}}
+\newcommand{\Normal}{\mathcal{N}}
+\newcommand{\diag}{\mathrm{diag}}
+\newcommand{\code}[1]{\texttt{#1}}
+
+\title{変分推論による確率的ボラティリティモデルの高速ベイズ推定\\[0.3em]
+  \large ―― MCMC との比較と実務システムへの適用 ――}
+\author{（著者名）}
+\date{2026 年 11 月（草稿・社内限定）}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+（執筆予定）
+\end{abstract}
+
+\input{sections/01_introduction}
+\input{sections/02_sv_model}
+\input{sections/03_inference}
+\input{sections/04_variational_family}
+\input{sections/05_synthetic}
+\input{sections/06_empirical}
+\input{sections/07_system}
+\input{sections/08_conclusion}
+
+\printbibliography[title={参考文献}]
+
+\appendix
+\input{sections/appendix}
+
+\end{document}

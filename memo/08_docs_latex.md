@@ -51,3 +51,21 @@ docs/
 
 - Overleaf の無料プランはコンパイル時間に上限がある。大きな図（点の多い散布図など）はラスタ化するか点を間引く
 - `\input` のパスは `docs/` 直下からの相対パスにする（zip を展開した位置がルートになるため）
+
+## 執筆の進め方（2026-11-24 ユーザー指示）
+
+- **執筆段階では分量（文字数・ページ数）を気にせず、省略せずに詳しく書く。分量は最後にまとめて調整する**（全章共通）
+- 章ごとに書いてユーザーが Overleaf で確認する
+
+## 雛形の作成（2026-11-24）
+
+- `docs/main.tex`：ltjsarticle（A4・11pt・1 段組、余白 25mm）、amsmath/amssymb/bm/graphicx/booktabs/xcolor/enumitem、
+  biblatex（authoryear、biber）、hyperref、cleveref。cleveref は日本語の書式を `\jacref` で定義（「第5章」「第5章・第7章」「第5章〜第8章」「図5」「表2」「付録A」）
+- 記法マクロ：`\E`, `\KL`, `\ELBO`, `\Normal`, `\diag`, `\code`
+- タイトルは 01 の第 1 案、著者は「（著者名）」の仮置き、概要は未執筆
+- `docs/sections/01_introduction.tex` は本文あり。02〜08 と `appendix.tex` は `\section` と `\label` だけのスタブ（1 章からの相互参照が「??」にならないように）
+  ラベル：`sec:intro`, `sec:model`, `sec:inference`, `sec:family`, `sec:synthetic`, `sec:empirical`, `sec:system`, `sec:conclusion`, `app:derivation`, `app:code`, `app:settings`, `app:data`
+- `docs/references.bib`：1 章で引用する 25 件。Crossref・出版社・JMLR/PMLR/NeurIPS・arXiv・CiNii・BIS で巻号・ページ・DOI を確認したものだけを入れた
+- zip：`uv run python scripts/make_overleaf_zip.py` → `results/overleaf/sv-vi-docs.zip`（git 管理外。main.tex・latexmkrc・bib・sections・figures・tables の 28 ファイル）
+- Overleaf の手順：新規プロジェクト → プロジェクトのアップロード → zip を選ぶ。Menu → Compiler が LuaLaTeX になっていることを確認（latexmkrc でも指定）
+- ローカルに TeX がないため、こちらでは引用キー・ラベル・環境の対応だけを機械的に確認している。初回のコンパイルエラーはユーザーの報告をもとに直す

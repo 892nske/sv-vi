@@ -1,0 +1,12 @@
+\begin{tabular}{llrl}
+\toprule
+パラメータ & 事前分布 & 事前平均 & 95\% 区間 \\
+\midrule
+$\mu$ & $\Normal(0,\ 10^2)$ & 0.0 & [-19.6,\ 19.6] \\
+$\phi$ & $(\phi+1)/2 \sim \mathrm{Beta}(20,\ 1.5)$ & 0.860 & [0.588,\ 0.989] \\
+$\sigma$ & $\mathrm{HalfNormal}(1)$（標準） & 0.798 & [0.031,\ 2.241] \\
+$\sigma$ & $\sigma^2 \sim \mathrm{InvGamma}(2.5,\ 0.025)$（感度分析） & 0.119 & [0.062,\ 0.245] \\
+$\rho$ & $\mathrm{Uniform}(-1,\ 1)$ & 0.000 & [-0.95,\ 0.95] \\
+$\nu$ & $\nu-2 \sim \mathrm{Gamma}(2,\ 0.1)$ & 22.0 & [4.4,\ 57.7] \\
+\bottomrule
+\end{tabular}
