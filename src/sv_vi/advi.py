@@ -209,3 +209,34 @@ def fit(params0: dict, y: jax.Array, key: jax.Array, spec: ModelSpec, config: AD
     keys = jax.random.split(key, config.num_steps)
     (params, _), elbo_trace = jax.lax.scan(step, (params0, optimizer.init(params0)), keys)
     return params, elbo_trace
+
+
+# ---------------------------------------------------------------------------
+# warm start：推定窓を 1 日進めたときの変分パラメータの引き継ぎ
+# ---------------------------------------------------------------------------
+
+
+def _shift(v: jax.Array, fill=None) -> jax.Array:
+    """先頭を捨てて末尾に 1 つ足す（既定では最後の値を複製）。"""
+    last = v[-1:] if fill is None else jnp.full((1,) + v.shape[1:], fill, dtype=v.dtype)
+    return jnp.concatenate([v[1:], last])
+
+
+def shift_params(params: dict, family: str, spec: ModelSpec) -> dict:
+    """長さ T の窓を 1 日進めたときの初期値。大域パラメータはそのまま、時点ごとのパラメータは 1 つずらす。
+
+    新しい日の値は前日の値を複製する（h は持続性が高いので良い初期値になる）。
+    レバレッジのドリフト ẽ は新しい日の分を 0 から始める。
+    """
+    p = dict(params)
+    if family == "meanfield":
+        k = spec.n_global
+        for name in ("loc", "log_scale"):
+            p[name] = jnp.concatenate([params[name][:k], _shift(params[name][k:])])
+        return p
+    for name in ("v_loc", "v_log_diag", "v_off", "pseudo_obs", "log_pseudo_prec"):
+        if name in p:
+            p[name] = _shift(params[name])
+    if "shock" in p:
+        p["shock"] = _shift(params["shock"], fill=0.0)
+    return p

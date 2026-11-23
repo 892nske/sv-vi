@@ -92,3 +92,14 @@ sv-vi/
 - 計時：自前 ADVI は AOT コンパイル（`jit(...).lower().compile()`）でコンパイル時間を分離。NumPyro の `svi.run` はステップ数ごとに再コンパイルするので総時間のみ
 - 図は `docs/figures/*.pdf`（フォント埋め込み、`pdf.fonttype=42`）、確認用 PNG は `results/figures_png/`
 - メモリ：開発機は空きが約 2GB しかないため、実験は直列に回し、各データセット後に `jax.clear_caches()`
+
+## 実装メモ（2026-11-23、実データ実験）
+
+- 追加依存：`requests`, `python-dotenv`（J-Quants）、`arch`（GARCH 比較）
+- `data.py`：J-Quants V2 クライアント（13 秒間隔、429 は 120 秒待って再試行、ページング、`data/raw/` に CSV キャッシュ）
+- `predictive.py`：1 期先予測は混合分布として扱い、VaR は混合 CDF の分位点（二分法）、予測スコアは logsumexp で計算
+- `advi.shift_params`：ローリング推定の warm start（時点ごとのパラメータを 1 日ずらし、末尾は前日の値を複製）
+- `run_advi(params0=..., aot=False)`：同じ形の推定を何度も回すときは jit のキャッシュを使う（R2 は 1 日 0.1 秒）
+- CPU デバイス数は環境変数 `SV_VI_HOST_DEVICES`（既定 4）。R4 は 8 で実行。
+  多銘柄は `pmap`（デバイス並列）＋デバイス内 `lax.map` が最速、`vmap` は CPU では遅い（10 参照）
+- 再開処理で CSV を読むときは銘柄コードを文字列として読む（`dtype={"code": str}`。数値になると一致判定が外れて全部やり直しになる）

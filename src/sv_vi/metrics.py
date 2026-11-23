@@ -31,3 +31,54 @@ def standardized_mean_diff(mean_vi, mean_ref, sd_ref) -> np.ndarray:
 def wasserstein(samples_vi: np.ndarray, samples_ref: np.ndarray) -> float:
     """1 次元の Wasserstein 距離。"""
     return float(wasserstein_distance(np.ravel(samples_vi), np.ravel(samples_ref)))
+
+
+# ---------------------------------------------------------------------------
+# VaR バックテスト
+# ---------------------------------------------------------------------------
+
+
+def _bern_loglik(n0: int, n1: int, p: float) -> float:
+    """ベルヌーイ列（0 が n0 回、1 が n1 回）の対数尤度。0·log0 = 0 として扱う。"""
+    from scipy.special import xlogy
+
+    return float(xlogy(n0, 1.0 - p) + xlogy(n1, p))
+
+
+def kupiec_pof(hits, alpha: float) -> dict:
+    """Kupiec (1995) の超過率（POF）検定。H0: 超過確率 = alpha。LR ~ χ²(1)。"""
+    from scipy.stats import chi2
+
+    hits = np.asarray(hits, dtype=bool)
+    n, x = len(hits), int(hits.sum())
+    lr = -2.0 * (_bern_loglik(n - x, x, alpha) - _bern_loglik(n - x, x, x / n))
+    return {"n": n, "exceed": x, "rate": x / n, "lr": lr, "p": float(chi2.sf(lr, 1))}
+
+
+def christoffersen(hits, alpha: float) -> dict:
+    """Christoffersen (1998) の独立性検定と条件付き被覆検定。
+
+    超過が連続して起きやすいか（クラスタリング）を 1 次マルコフ連鎖で検定する。
+    LR_ind ~ χ²(1)、LR_cc = LR_pof + LR_ind ~ χ²(2)。
+    """
+    from scipy.stats import chi2
+
+    h = np.asarray(hits, dtype=int)
+    prev, cur = h[:-1], h[1:]
+    n00 = int(np.sum((prev == 0) & (cur == 0)))
+    n01 = int(np.sum((prev == 0) & (cur == 1)))
+    n10 = int(np.sum((prev == 1) & (cur == 0)))
+    n11 = int(np.sum((prev == 1) & (cur == 1)))
+    pi01 = n01 / max(n00 + n01, 1)
+    pi11 = n11 / max(n10 + n11, 1)
+    pi = (n01 + n11) / max(n00 + n01 + n10 + n11, 1)
+    l0 = _bern_loglik(n00 + n10, n01 + n11, pi)
+    l1 = _bern_loglik(n00, n01, pi01) + _bern_loglik(n10, n11, pi11)
+    lr_ind = -2.0 * (l0 - l1)
+    lr_cc = kupiec_pof(hits, alpha)["lr"] + lr_ind
+    return {
+        "lr_ind": lr_ind,
+        "p_ind": float(chi2.sf(lr_ind, 1)),
+        "lr_cc": lr_cc,
+        "p_cc": float(chi2.sf(lr_cc, 2)),
+    }

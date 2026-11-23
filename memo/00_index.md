@@ -16,6 +16,7 @@
 | [07_data_jquants.md](07_data_jquants.md) | J-Quants API による実データ取得の方針（無料プラン＋ETF で指数代替） |
 | [08_docs_latex.md](08_docs_latex.md) | Overleaf 向け LaTeX の構成方針 |
 | [09_results_synthetic.md](09_results_synthetic.md) | 合成データ実験（S1〜S4）の結果と論文への反映メモ |
+| [10_results_empirical.md](10_results_empirical.md) | 実データ実験（R1〜R4）の結果と論文への反映メモ |
 | [references.md](references.md) | 参考文献リスト |
 
 ## 決定事項サマリ（2026-11-22 更新）
@@ -36,7 +37,8 @@
 
 1. **方針確定**（本メモ群）（確認事項の回答を反映済み）
 2. **実装**：合成データ生成 → 基本SV × NUTS → 基本SV × 各種VI → 比較実験 → 拡張モデル → 実データ
-   - 2026-11-23：合成データ実験 S1〜S4 まで完了（→ 09）。次は実データ（J-Quants）← いまここ
+   - 2026-11-23：合成データ実験 S1〜S4 まで完了（→ 09）
+   - 2026-11-23：実データ実験 R1〜R4 まで完了（→ 10）。次は docs/ の LaTeX 執筆 ← いまここ
 3. **実験結果の蓄積**：`experiments/` で再現可能なスクリプト化、図表は `docs/figures/` に出力
 4. **docs/ 整備**：LaTeX で清書し、Overleaf アップロード用 zip を作成
 

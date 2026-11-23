@@ -36,6 +36,8 @@ class PosteriorSummary:
     time_compile: float = float("nan")  # そのうち JIT コンパイルの時間（推定値）
     elbo_trace: np.ndarray | None = None
     extra: dict = field(default_factory=dict)
+    h_last: np.ndarray | None = None  # 最終時点 h_T のサンプル（(S,)。1 期先予測に使う）
+    params: dict | None = None  # 自前 ADVI の最終の変分パラメータ（warm start 用）
 
     @property
     def time_run(self) -> float:
@@ -59,6 +61,7 @@ def _summarize(method, theta_samples, h_samples, **kw) -> PosteriorSummary:
         h_sd=h.std(0),
         h_q025=q[0],
         h_q975=q[1],
+        h_last=h[:, -1].copy(),
         **kw,
     )
 
@@ -196,16 +199,28 @@ def run_advi(
     config: advi.ADVIConfig = advi.ADVIConfig(),
     num_post: int = 1000,
     khat: bool = True,
+    params0: dict | None = None,
+    aot: bool = True,
 ) -> PosteriorSummary:
+    """自前 ADVI を実行する。
+
+    params0 を渡すとそこから最適化を始める（warm start）。
+    aot=True ではコンパイル時間を分けて測るため毎回 AOT コンパイルする。同じ形で何度も回すときは
+    aot=False にすると jit のキャッシュが効き、2 回目以降はコンパイルしない。
+    """
     y = jnp.asarray(y)
-    init = initial_values(y, spec)
-    params0 = advi.init_params(init, spec, config.family, y)
+    if params0 is None:
+        params0 = advi.init_params(initial_values(y, spec), spec, config.family, y)
     k_fit, k_post = jax.random.split(key)
 
     t0 = time.perf_counter()
-    compiled = advi.fit.lower(params0, y, k_fit, spec, config).compile()
-    t_compile = time.perf_counter() - t0
-    params, elbo_trace = compiled(params0, y, k_fit)
+    if aot:
+        compiled = advi.fit.lower(params0, y, k_fit, spec, config).compile()
+        t_compile = time.perf_counter() - t0
+        params, elbo_trace = compiled(params0, y, k_fit)
+    else:
+        t_compile = float("nan")
+        params, elbo_trace = advi.fit(params0, y, k_fit, spec, config)
     jax.block_until_ready(params)
     elapsed = time.perf_counter() - t0
 
@@ -225,4 +240,5 @@ def run_advi(
         time_compile=t_compile,
         elbo_trace=np.asarray(elbo_trace),
         extra=extra,
+        params=jax.device_get(params),
     )

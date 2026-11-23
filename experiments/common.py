@@ -124,6 +124,8 @@ def save_summary(r: PosteriorSummary, path: Path) -> None:
     arrays |= {k: getattr(r, k) for k in ("h_mean", "h_sd", "h_q025", "h_q975")}
     if r.elbo_trace is not None:
         arrays["elbo_trace"] = r.elbo_trace
+    if r.h_last is not None:
+        arrays["h_last"] = r.h_last
     meta = {"method": r.method, "time_total": r.time_total, "time_compile": r.time_compile}
     meta["extra"] = r.extra
     np.savez_compressed(path, meta=json.dumps(meta, default=float), **arrays)
@@ -144,6 +146,7 @@ def load_summary(path: Path) -> PosteriorSummary:
         time_compile=meta["time_compile"],
         elbo_trace=z["elbo_trace"] if "elbo_trace" in z.files else None,
         extra=meta["extra"],
+        h_last=z["h_last"] if "h_last" in z.files else None,
     )
 
 

@@ -77,3 +77,15 @@ def test_conditional_mean_without_drift_is_prior_mean():
     u = jnp.array([0.7, 1.2, -1.5])
     _, m, _, _ = advi.conditional_factor(params, u, spec)
     np.testing.assert_allclose(m, 0.7, atol=1e-8)
+
+
+@pytest.mark.parametrize("family", advi.FAMILIES)
+def test_shift_params_keeps_shapes(data, family):
+    spec = ModelSpec(leverage=True)
+    params = advi.init_params(initial_values(data["y"], spec), spec, family, data["y"])
+    shifted = advi.shift_params(params, family, spec)
+    for k in params:
+        assert shifted[k].shape == params[k].shape
+    if family == "conditional":
+        np.testing.assert_allclose(shifted["pseudo_obs"][:-1], params["pseudo_obs"][1:])
+        assert shifted["pseudo_obs"][-1] == params["pseudo_obs"][-1]
