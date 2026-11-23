@@ -20,6 +20,7 @@
 - Ormerod, J. T., & Wand, M. P. (2010). Explaining variational approximations. *The American Statistician*, 64(2), 140–153.
 - Tan, L. S. L., & Nott, D. J. (2018). Gaussian variational approximation with sparse precision matrices. *Statistics and Computing*, 28, 259–275. — **構造化ガイドの直接の理論的背景**
 - Archer, E., Park, I. M., Buesing, L., Cunningham, J., & Paninski, L. (2015). Black box variational inference for state space models. arXiv:1511.07367.
+- Johnson, M. J., Duvenaud, D., Wiltschko, A. B., Datta, S. R., & Adams, R. P. (2016). Composing graphical models with neural networks for structured representations and fast inference. *NeurIPS*. — 擬似観測（共役な因子）による構造化 VI。条件付き構造化族の考え方の背景
 - Krishnan, R. G., Shalit, U., & Sontag, D. (2017). Structured inference networks for nonlinear state space models. *AAAI*.
 - Gunawan, D., Kohn, R., & Nott, D. (2021). Variational Bayes approximation of factor stochastic volatility models. *International Journal of Forecasting*. — SV × VI の先行研究（巻号要確認）
 - Yao, Y., Vehtari, A., Simpson, D., & Gelman, A. (2018). Yes, but did it work?: Evaluating variational inference. *ICML*. — PSIS $\hat k$ による VI 診断

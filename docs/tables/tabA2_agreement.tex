@@ -1,0 +1,14 @@
+\begin{tabular}{lrrrrrrrr}
+\toprule
+手法 & $\phi$ & $\sigma$ & $\mathrm{sd}(\phi)$比 & $\mathrm{sd}(\sigma)$比 & $\mathrm{sd}(h)$比 & ELBO & $\hat k$ & 時間[s] \\
+\midrule
+NUTS (reference) & 0.983 & 0.126 & -- & -- & -- & -- & -- & 178.1 \\
+VI: conditional (proposed) & 0.983 & 0.123 & 0.87 & 0.90 & 0.98 & -1579.9 & 0.85 & 7.1 \\
+VI: structured & 0.964 & 0.198 & 0.87 & 0.17 & 1.23 & -1586.1 & 1.02 & 3.5 \\
+VI: mean-field & 0.053 & 0.703 & 3.57 & 0.56 & 2.11 & -1643.7 & 1.41 & 15.3 \\
+VI: structured (NumPyro) & 0.964 & 0.198 & 0.93 & 0.17 & 1.23 & -1586.3 & 1.02 & 17.1 \\
+VI: mean-field (NumPyro) & 0.053 & 0.705 & 3.59 & 0.61 & 2.11 & -1643.6 & 1.43 & 20.6 \\
+VI: low-rank (NumPyro) & 0.052 & 0.701 & 4.11 & 0.62 & 2.10 & -1643.4 & 1.25 & 43.4 \\
+VI: full-rank (NumPyro) & 0.240 & 0.667 & 4.31 & 0.65 & 2.04 & -1705.5 & 4.15 & 229.9 \\
+\bottomrule
+\end{tabular}

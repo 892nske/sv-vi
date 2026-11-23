@@ -1,0 +1,12 @@
+\begin{tabular}{rrrrrrr}
+\toprule
+$T$ & NUTS (reference) & VI: conditional (proposed) & VI: structured & VI: mean-field & VI: mean-field (NumPyro) & NUTS 最小ESS/秒 \\
+\midrule
+250 & 5.0 & 2.7 & 1.8 & 2.5 & 4.2 & 9.07 \\
+500 & 7.5 & 2.4 & 1.9 & 3.5 & 3.7 & 2.20 \\
+1000 & 11.8 & 3.2 & 2.0 & 4.0 & 8.6 & 2.41 \\
+2000 & 21.7 & 2.4 & 3.6 & 10.5 & 11.5 & 0.28 \\
+5000 & 83.9 & 10.3 & 7.4 & 21.8 & 31.1 & 0.53 \\
+10000 & 548.0 & 11.0 & 7.8 & 11.7 & 29.7 & 0.03 \\
+\bottomrule
+\end{tabular}

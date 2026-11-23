@@ -1,0 +1,22 @@
+\begin{tabular}{llrrrrrrr}
+\toprule
+比較 & 設定 & $\bar\phi$ & $\bar\sigma$ & $\mathrm{sd}(\phi)$比 & $\mathrm{sd}(\sigma)$比 & $\mathrm{sd}(h)$比 & $h$ RMSE & 収束step \\
+\midrule
+パラメータ化 & meanfield/中心化 & 0.041 & 0.536 & 2.38 & 0.35 & 1.62 & 0.529 & 2600 \\
+ & meanfield/非中心化 & 0.039 & 0.555 & 2.32 & 1.35 & 1.70 & 0.528 & 5600 \\
+ & structured/中心化 & 0.949 & 0.204 & 0.66 & 0.14 & 1.22 & 0.312 & 3200 \\
+ & structured/非中心化 & 0.941 & 0.205 & 0.80 & 0.47 & 1.24 & 0.318 & 2600 \\
+ & conditional/中心化 & 0.975 & 0.130 & 0.90 & 0.93 & 0.97 & 0.286 & 1600 \\
+ & conditional/非中心化 & 0.975 & 0.129 & 0.90 & 0.87 & 0.97 & 0.285 & 800 \\
+\addlinespace
+σ の事前分布 & conditional/InvGamma & 0.979 & 0.117 & 0.80 & 0.83 & 0.97 & 0.283 & 1600 \\
+\addlinespace
+MC サンプル数 & conditional/MC=1 & 0.976 & 0.125 & 0.82 & 0.85 & 0.95 & 0.284 & 5600 \\
+ & conditional/MC=4 & 0.975 & 0.129 & 0.92 & 0.92 & 0.98 & 0.285 & 3000 \\
+ & conditional/MC=16 & 0.974 & 0.131 & 0.91 & 0.92 & 0.98 & 0.285 & 1800 \\
+\addlinespace
+学習率 & conditional/lr=0.003 & 0.978 & 0.120 & 0.73 & 0.77 & 0.94 & 0.283 & 2800 \\
+ & conditional/lr=0.01 & 0.975 & 0.129 & 0.86 & 0.88 & 0.97 & 0.285 & 2400 \\
+ & conditional/lr=0.03 & 0.974 & 0.132 & 0.87 & 0.94 & 0.98 & 0.285 & 1000 \\
+\bottomrule
+\end{tabular}
