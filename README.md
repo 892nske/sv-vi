@@ -38,3 +38,17 @@ uv run python experiments/s3_scaling.py      # S3: 計算時間のスケーリ�
 uv run python experiments/s4_sensitivity.py  # S4: 感度分析（表A1）
 uv run python experiments/s1_recovery.py     # S1: 復元精度（表1）※数時間かかる。中断しても続きから再開できる
 ```
+
+## 論文（docs/）のコンパイル
+
+LuaLaTeX ＋ biber（latexmk）。ローカルでは TeX Live 2026 をユーザー領域（`~/texlive/2026`）に入れてある（sudo 不要）。
+
+```bash
+scripts/build_pdf.sh           # → docs/build/main.pdf（2 回目以降は約 10 秒）
+scripts/build_pdf.sh --clean   # 中間ファイルと PDF を削除
+uv run python scripts/make_overleaf_zip.py   # Overleaf アップロード用 zip → results/overleaf/
+```
+
+TeX を手で使う場合は PATH に `~/texlive/2026/bin/x86_64-linux` を加える（`scripts/build_pdf.sh` は自動で探す）。
+新しい環境では、公式の `install-tl` で `scheme-small` を入れたあと
+`tlmgr install collection-langjapanese collection-luatex biblatex biber latexmk cleveref enumitem booktabs logreq` を実行する。

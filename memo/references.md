@@ -32,8 +32,8 @@
 - Bradbury, J., et al. (2018). JAX: composable transformations of Python+NumPy programs. http://github.com/jax-ml/jax
 
 ## VaR バックテスト
-- Kupiec, P. H. (1995). Techniques for verifying the accuracy of risk measurement models. *Journal of Derivatives*, 3(2), 73–84.
-- Christoffersen, P. F. (1998). Evaluating interval forecasts. *International Economic Review*, 39(4), 841–862.
+- Kupiec, P. H. (1995). Techniques for verifying the accuracy of risk measurement models. *Journal of Derivatives*, 3(2), 73–84. 【bib済】
+- Christoffersen, P. F. (1998). Evaluating interval forecasts. *International Economic Review*, 39(4), 841–862. 【bib済】
 
 ## 2026-11-24 の調査で追加（1 章の関連研究。いずれも原典で確認し bib 済み）
 - Tan, L. S. L., Bhaskaran, A., & Nott, D. J. (2020). Conditionally structured variational Gaussian approximation with importance weights. *Statistics and Computing*, 30(5), 1255–1272. — 局所変数の変分分布を大域パラメータに条件付ける。**提案族に最も近い先行研究**
@@ -53,6 +53,34 @@
 - Christie, A. A. (1982). The stochastic behavior of common stock variances. *Journal of Financial Economics*, 10(4), 407–432. — レバレッジ効果
 - Papaspiliopoulos, O., Roberts, G. O., & Sköld, M. (2007). A general framework for the parametrization of hierarchical models. *Statistical Science*, 22(1), 59–73. — 中心化・非中心化
 
+## 2026-11-25 の調査で追加（3 章。Crossref・JMLR・PMLR・arXiv・JAX 公式で確認し bib 済み）
+- Metropolis ら (1953) J. Chem. Phys. 21(6) 1087–1092 / Hastings (1970) Biometrika 57(1) 97–109 / Duane ら (1987) Phys. Lett. B 195(2) 216–222
+- Neal (2011) MCMC using Hamiltonian dynamics. Handbook of MCMC, 113–162 / Betancourt (2017) arXiv:1701.02434
+- Gelman & Rubin (1992) Stat. Sci. 7(4) 457–472 / Gelman ら (2013) BDA3 / Vehtari ら (2021) 改良 R̂, Bayesian Analysis 16(2) 667–718
+- Bishop (2006) PRML（平均場の分散過小評価）/ **Turner & Sahani (2011)** Two problems with variational EM for time series models（パラメータが近似の正確な方向に偏る。本稿の φ 崩壊と同じ現象）
+- Robbins & Monro (1951) / Kingma & Ba (2015) Adam / Vehtari ら (2024) PSIS, JMLR 25(72) / Bradbury ら (2018) JAX
+
 ## 追加調査したいもの
 - SV × VI の最近の先行研究（2020 年以降）のサーベイ → 本稿の新規性の位置付けに必要
 - 日本の株価指数での SV 推定例（大森・渡部らの実証研究）
+
+## 6 章で追加（2026-11-26、Crossref で確認）
+- Diebold, F. X., & Mariano, R. S. (1995). Comparing predictive accuracy. *JBES*, 13(3), 253–263. doi:10.1080/07350015.1995.10524599 【bib済】
+- Newey, W. K., & West, K. D. (1987). A simple, positive semi-definite, heteroskedasticity and autocorrelation consistent covariance matrix. *Econometrica*, 55(3), 703–708. 【bib済】
+- Gneiting, T., & Raftery, A. E. (2007). Strictly proper scoring rules, prediction, and estimation. *JASA*, 102(477), 359–378. 【bib済】
+- Sheppard, K. et al. arch（Python パッケージ v9.0.0、2026-11-11 公開、doi:10.5281/zenodo.593254）【bib済】
+- J-Quants API（株式会社 JPX 総研、https://jpx-jquants.com/）【bib済】。サイトは自動アクセスに 403 を返すため URL の到達は未確認（memo/07 の調査時に公式で確認済み）
+
+## 7 章で追加（2026-11-27）
+- 金融庁（2021）「モデル・リスク管理に関する原則」2021-11-12 公表。https://www.fsa.go.jp/news/r3/ginkou/20211112.html（ページの表題で確認）【bib済】
+
+## 8 章で追加（2026-11-27、Crossref・出版社ページで確認）【すべて bib済】
+- Rezende & Mohamed (2015) Variational inference with normalizing flows. ICML, PMLR 37, 1530–1538
+- Kingma, Salimans, Jozefowicz, Chen, Sutskever & Welling (2016) Improved variational inference with inverse autoregressive flow. NeurIPS 29
+- Chib, Nardari & Shephard (2006) Analysis of high dimensional multivariate SV models. J. Econometrics 134(2), 341–371. doi:10.1016/j.jeconom.2005.06.026
+- Asai, McAleer & Yu (2006) Multivariate SV: a review. Econometric Reviews 25(2–3), 145–175
+- Eraker, Johannes & Polson (2003) The impact of jumps in volatility and returns. J. Finance 58(3), 1269–1300
+- Takahashi, Omori & Watanabe (2009) Estimating SV models using daily returns and realized volatility simultaneously. CSDA 53(6), 2404–2426. doi:10.1016/j.csda.2008.07.039
+- Glosten, Jagannathan & Runkle (1993) J. Finance 48(5), 1779–1801 / Nelson (1991) Econometrica 59(2), 347–370
+- Krishnan, Shalit & Sontag (2017) Structured inference networks for nonlinear state space models. AAAI 31(1)
+- 注：最初に推測した Chib ら 2006・Takahashi ら 2009 の DOI は別の論文だった。題名検索で正しい DOI を確認して登録

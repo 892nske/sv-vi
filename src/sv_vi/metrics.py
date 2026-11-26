@@ -82,3 +82,31 @@ def christoffersen(hits, alpha: float) -> dict:
         "lr_cc": lr_cc,
         "p_cc": float(chi2.sf(lr_cc, 2)),
     }
+
+
+def diebold_mariano(d, lags: int | None = None) -> dict:
+    """Diebold & Mariano (1995) の予測精度の比較検定。
+
+    d は 2 つの予測の損失（または対数予測スコア）の日ごとの差。H0: E[d] = 0。
+    分散は Newey & West (1987) の HAC 推定（Bartlett 核、ラグ lags）で、統計量を標準正規分布と比べる（両側）。
+    lags を省略すると floor(4 (n/100)^(2/9)) を使う。lags=0 なら通常の（標本分散による）検定になる。
+    """
+    from scipy.stats import norm
+
+    d = np.asarray(d, dtype=float)
+    d = d[~np.isnan(d)]
+    n = len(d)
+    if lags is None:
+        lags = int(np.floor(4.0 * (n / 100.0) ** (2.0 / 9.0)))
+    e = d - d.mean()
+    lrv = np.dot(e, e) / n
+    for k in range(1, lags + 1):
+        w = 1.0 - k / (lags + 1.0)
+        lrv += 2.0 * w * np.dot(e[k:], e[:-k]) / n
+    stat = d.mean() / np.sqrt(lrv / n)
+    return {
+        "mean": float(d.mean()),
+        "stat": float(stat),
+        "p": float(2.0 * norm.sf(abs(stat))),
+        "lags": lags,
+    }

@@ -84,7 +84,15 @@
 | 表2 | 実データの事後要約と推定時間 | R1 | 本文 |
 | 表3 | VaR バックテスト結果（＋warm start の所要時間を注記） | R2/R3 | 本文 |
 | 表A1 | 感度分析 | S4 | 付録 |
+| 4章の図表 | 図 `fig_sigma_roughness`（σ と h の経路の粗さの散布図、S2 データ）、表 `tab_families`（族の比較・パラメータ数）。`experiments/f4_family_illustration.py`（NUTS を S2 と同じ長さで回すので約 4 分） | 4章 | 本文 |
+| 3章の表 | `tab_meanfield_gap`（θ 固定時の平均場の sd 比・KL の最小値）、`tab_meanfield_laplace`（S2 データで平均場の ELBO が小さい φ を好むことのラプラス近似による確認）。`experiments/f3_meanfield_gap.py` が生成 | 3章 | 本文 |
 | 2章の表 | `tab_sv_properties`（定常的な性質：尖度・半減期など）、`tab_priors`（事前分布の平均・95% 区間）。`f1_model_illustration.py` が生成 | 2章 | 本文 |
+
+**2026-11-26：5 章の執筆では、分量を最後に調整する方針により、図A1・表A1〜A3 もいったん 5 章の本文に置いた（ラベル fig:elbo・tab:agreement・tab:scaling・tab:sensitivity）。分量調整のときに付録へ移す候補。**
+
+**2026-11-26：6 章では図A2 もいったん本文に置いた（fig:var-backtest）。新しい表：tab_data_summary・tab2b_etf_agreement（R1b：長い NUTS で R1 を確認）・tab_multi_agreement・tab3b_nuts_days。表A4（32 銘柄の計算時間）は 7 章用。**
+
+**2026-11-27：7 章用に R5（`r5_operations.py`）を追加。図 fig7_monitoring、表 tab_warm_steps・tab_multi_scaling。表A4 は tab_multi_scaling に統合（tabA4 は未使用）。**
 
 図1〜6 のうち本文に入れるのは 5 枚まで。図1は図2に統合する案を第一候補とする。
 

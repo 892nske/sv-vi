@@ -29,7 +29,7 @@ SCENARIO_EN = {
 }
 # シナリオは手法ではないので、手法用の色と重ならないように黒系＋線種で区別する
 SCENARIO_LS = {"standard": "-", "high_persistence": "--", "low_persistence": ":"}
-ETF_JA = {"13210": "1321（日経225連動）", "13060": "1306（TOPIX連動）"}
+ETF_JA = {"13210": "1321", "13060": "1306"}
 
 
 # ---------------------------------------------------------------------------
@@ -142,7 +142,7 @@ def real_estimates() -> list[tuple[str, dict]]:
         r = d[d["code"] == code]
         if len(r):
             r = r.iloc[0]
-            out.append((f"{label}・NUTS", {k: r[f"{k}_mean"] for k in ("mu", "phi", "sigma")}))
+            out.append((f"実データ：{label}", {k: r[f"{k}_mean"] for k in ("mu", "phi", "sigma")}))
     return out
 
 

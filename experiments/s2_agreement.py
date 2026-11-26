@@ -204,7 +204,7 @@ def table(df):
             return "--" if pd.isna(v) else format(v, fmt)
 
         lines.append(
-            f"{plotting.label(m)} & {f('phi_mean', '.3f')} & {f('sigma_mean', '.3f')} & "
+            f"{plotting.label_ja(m)} & {f('phi_mean', '.3f')} & {f('sigma_mean', '.3f')} & "
             f"{f('phi_sd_ratio', '.2f')} & {f('sigma_sd_ratio', '.2f')} & {f('h_sd_ratio', '.2f')} & "
             f"{f('elbo_final', '.1f')} & {f('khat', '.2f')} & {f('time_total', '.1f')} \\\\"
         )

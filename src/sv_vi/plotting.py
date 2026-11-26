@@ -40,6 +40,24 @@ def label(method: str) -> str:
     return METHOD_STYLE.get(method, (method,))[0]
 
 
+# 論文の表で使う日本語の手法名（図は英語の label を使う）
+LABEL_JA = {
+    "NUTS": "NUTS（基準）",
+    "ADVI-conditional": "条件付き構造化（提案）",
+    "ADVI-structured": "構造化",
+    "ADVI-meanfield": "平均場",
+    "SVI-structured": "構造化（NumPyro）",
+    "SVI-meanfield": "平均場（NumPyro）",
+    "SVI-lowrank": "低ランク（NumPyro）",
+    "SVI-fullrank": "フルランク（NumPyro）",
+}
+FAMILY_JA = {"meanfield": "平均場", "structured": "構造化", "conditional": "条件付き構造化"}
+
+
+def label_ja(method: str) -> str:
+    return LABEL_JA.get(method, method)
+
+
 def color(method: str) -> str:
     return METHOD_STYLE[method][1]
 

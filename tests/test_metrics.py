@@ -25,3 +25,24 @@ def test_christoffersen_detects_clustering():
     spread[::20] = True
     assert christoffersen(clustered, 0.05)["p_ind"] < 0.01
     assert christoffersen(spread, 0.05)["p_ind"] > 0.1
+
+
+def test_diebold_mariano_without_lags_is_mean_test():
+    from sv_vi.metrics import diebold_mariano
+
+    rng = np.random.default_rng(0)
+    d = rng.normal(0.1, 1.0, size=400)
+    r = diebold_mariano(d, lags=0)
+    expected = d.mean() / (d.std(ddof=0) / np.sqrt(len(d)))
+    assert r["stat"] == pytest.approx(expected)
+    assert r["lags"] == 0
+
+
+def test_diebold_mariano_hac_widens_for_positive_autocorrelation():
+    from sv_vi.metrics import diebold_mariano
+
+    rng = np.random.default_rng(1)
+    e = rng.normal(size=2000)
+    d = 0.05 + np.convolve(e, np.ones(5) / 5, mode="valid")  # 正の自己相関を持つ系列
+    assert abs(diebold_mariano(d, lags=8)["stat"]) < abs(diebold_mariano(d, lags=0)["stat"])
+    assert diebold_mariano(d)["lags"] == int(np.floor(4 * (len(d) / 100) ** (2 / 9)))

@@ -3,7 +3,7 @@
 ## 運用
 
 - LaTeX 一式はローカルの `docs/` で作り、ユーザーが Overleaf にアップロードしてコンパイル・確認する
-- ローカルに TeX 環境は入れない（コンパイルは Overleaf 側のみ）。そのため、Overleaf で確実に通る素直な構成にする
+- ~~ローカルに TeX 環境は入れない~~ → 2026-11-24 にローカル環境を構築（末尾参照）。Overleaf でも確実に通る素直な構成は維持する
 - アップロードは `docs/` を zip にまとめて行う（`scripts/make_overleaf_zip.sh` などを用意する予定）。
   Overleaf の「新規プロジェクト → プロジェクトのアップロード」で zip をそのまま取り込める
 
@@ -60,7 +60,7 @@ docs/
 ## 雛形の作成（2026-11-24）
 
 - `docs/main.tex`：ltjsarticle（A4・11pt・1 段組、余白 25mm）、amsmath/amssymb/bm/graphicx/booktabs/xcolor/enumitem、
-  biblatex（authoryear、biber）、hyperref、cleveref。cleveref は日本語の書式を `\jacref` で定義（「第5章」「第5章・第7章」「第5章〜第8章」「図5」「表2」「付録A」）
+  biblatex（authoryear、biber）、hyperref、cleveref、array（p 列を左寄せにする `>{\raggedright\arraybackslash}` 用、2026-11-26 追加）。cleveref は日本語の書式を `\jacref` で定義（「第5章」「第5章・第7章」「第5章〜第8章」「図5」「表2」「付録A」）
 - 記法マクロ：`\E`, `\KL`, `\ELBO`, `\Normal`, `\diag`, `\code`
 - タイトルは 01 の第 1 案、著者は「（著者名）」の仮置き、概要は未執筆
 - `docs/sections/01_introduction.tex` は本文あり。02〜08 と `appendix.tex` は `\section` と `\label` だけのスタブ（1 章からの相互参照が「??」にならないように）
@@ -68,4 +68,17 @@ docs/
 - `docs/references.bib`：1 章で引用する 25 件。Crossref・出版社・JMLR/PMLR/NeurIPS・arXiv・CiNii・BIS で巻号・ページ・DOI を確認したものだけを入れた
 - zip：`uv run python scripts/make_overleaf_zip.py` → `results/overleaf/sv-vi-docs.zip`（git 管理外。main.tex・latexmkrc・bib・sections・figures・tables の 28 ファイル）
 - Overleaf の手順：新規プロジェクト → プロジェクトのアップロード → zip を選ぶ。Menu → Compiler が LuaLaTeX になっていることを確認（latexmkrc でも指定）
-- ローカルに TeX がないため、こちらでは引用キー・ラベル・環境の対応だけを機械的に確認している。初回のコンパイルエラーはユーザーの報告をもとに直す
+- （2026-11-24 時点では TeX がなく機械的な確認のみだったが、同日ローカルでコンパイルできるようにした。末尾参照）
+
+## ローカルのコンパイル環境（2026-11-24 構築）
+
+- Overleaf のコンパイルが遅いので、WSL2 上に **TeX Live 2026 をユーザー領域 `~/texlive/2026` に**入れた（公式 install-tl、`scheme-small`。sudo 不要。`~/texlive` と `~/.texlive2026` を消せば元に戻る）。
+  追加：`collection-langjapanese collection-luatex biblatex biber latexmk cleveref enumitem booktabs logreq`。`~/.bashrc` は変更していない
+- 「ローカルに TeX 環境は入れない」という当初の方針は撤回。Overleaf 用の構成（latexmkrc、zip）はそのまま使える
+- ビルド：`scripts/build_pdf.sh` → `docs/build/main.pdf`（`docs/build/` は gitignore）。初回 29 秒、2 回目以降 約 9 秒。`-outdir` は latexmkrc ではなくコマンドラインで渡す（Overleaf に影響させないため）
+- 目視確認は `uv run --with pymupdf` で PDF を PNG にして見る（プロジェクトの依存には加えていない）
+- 初回コンパイルで見つけて直したこと：
+  - 日本語に隣接する `\cref` の前後に半角スペースがあると「第6章 で」のように空白が出る → **`\cref` と日本語の間にスペースを入れない**（以後の章も同じ）
+  - 節見出しの数式はしおりで警告 → `\texorpdfstring{$t$}{t}`
+  - 小さいサイズの数式フォントの置換警告 → `\usepackage{lmodern}`
+  - `tab_sv_properties` が 31pt はみ出し → 行ラベルを短縮（「実データ：1321」）、ETF 名はキャプションへ

@@ -12,7 +12,6 @@ import time
 
 import common
 import jax
-import numpy as np
 import pandas as pd
 
 from sv_vi import plotting
@@ -79,22 +78,40 @@ def fig_scaling(df):
 
 
 def table(df):
-    """付録用：T ごとの所要時間 [s]（VI は収束まで、NUTS は全体）と NUTS の最小 ESS/秒。"""
-    piv = df.assign(t=np.where(df["method"] == "NUTS", df["time_total"], df["time_conv"]))
-    piv = piv.pivot(index="T", columns="method", values="t")
-    nuts_ess = df[df["method"] == "NUTS"].set_index("T")["min_ess_per_sec"]
-    cols = [m for m in METHODS if m in piv]
+    """付録用：T ごとの所要時間 [s]。
+
+    NUTS は全体の時間と θ の最小 ESS・最大 R̂、提案手法は「ELBO の収束まで」と「全ステップ」の両方、
+    ほかの VI は収束までの時間。
+    """
+    d = df.set_index(["T", "method"])
+
+    def cell(T, m, col, fmt):
+        if (T, m) not in d.index:
+            return "--"
+        v = d.loc[(T, m), col]
+        return "--" if pd.isna(v) else format(v, fmt)
+
+    vi_cols = ["ADVI-structured", "ADVI-meanfield", "SVI-meanfield"]
+    nuts, prop = plotting.label_ja("NUTS"), plotting.label_ja("ADVI-conditional")
+    others = " & ".join(plotting.label_ja(m) for m in vi_cols)
     lines = [
-        r"\begin{tabular}{r" + "r" * (len(cols) + 1) + "}",
+        r"\begin{tabular}{rrrrrrrrr}",
         r"\toprule",
-        "$T$ & " + " & ".join(plotting.label(m) for m in cols) + r" & NUTS 最小ESS/秒 \\",
+        rf" & \multicolumn{{3}}{{c}}{{{nuts}}} & \multicolumn{{2}}{{c}}{{{prop}}}"
+        r" & \multicolumn{3}{c}{ほかの VI（収束まで）} \\",
+        r"\cmidrule(lr){2-4} \cmidrule(lr){5-6} \cmidrule(lr){7-9}",
+        rf"$T$ & 時間 & 最小 ESS & 最大 $\hat R$ & 収束まで & 全ステップ & {others} \\",
         r"\midrule",
     ]
-    for T, r in piv.iterrows():
-        cells = ["--" if pd.isna(r.get(m)) else f"{r[m]:.1f}" for m in cols]
-        ess = nuts_ess.get(T, np.nan)
-        cells.append("--" if pd.isna(ess) else f"{ess:.2f}")
-        lines.append(f"{T} & " + " & ".join(cells) + r" \\")
+    for T in sorted(df["T"].unique()):
+        cells = [
+            cell(T, "NUTS", "time_total", ".1f"),
+            cell(T, "NUTS", "ess_min", ".0f"),
+            cell(T, "NUTS", "rhat_max", ".2f"),
+            cell(T, "ADVI-conditional", "time_conv", ".1f"),
+            cell(T, "ADVI-conditional", "time_total", ".1f"),
+        ] + [cell(T, m, "time_conv", ".1f") for m in vi_cols]
+        lines.append(f"{T:,} & " + " & ".join(cells) + r" \\")
     lines += [r"\bottomrule", r"\end{tabular}"]
     common.TABLES.mkdir(parents=True, exist_ok=True)
     (common.TABLES / "tabA3_scaling.tex").write_text("\n".join(lines) + "\n")

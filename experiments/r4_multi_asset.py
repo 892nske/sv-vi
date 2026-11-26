@@ -220,6 +220,86 @@ def table(df: pd.DataFrame, timing: dict):
     (common.TABLES / "tabA4_multi_asset.tex").write_text("\n".join(lines) + "\n")
 
 
+def agreement_table(df: pd.DataFrame):
+    """表：32 銘柄での提案 VI と NUTS（各 2,000 回）の事後平均・事後 sd の比較。"""
+    tex = {"mu": r"$\mu$", "phi": r"$\phi$", "sigma": r"$\sigma$"}
+    lines = [
+        r"\begin{tabular}{lrrrrrr}",
+        r"\toprule",
+        r" & \multicolumn{2}{c}{差（VI $-$ NUTS）} & \multicolumn{2}{c}{$|\text{差}| / \mathrm{sd}_{\mathrm{NUTS}}$} "
+        r"& sd 比 & VI $>$ NUTS \\",
+        r"\cmidrule(lr){2-3} \cmidrule(lr){4-5}",
+        r"パラメータ & 中央値 & 範囲 & 中央値 & 最大 & 中央値［範囲］ & の銘柄数 \\",
+        r"\midrule",
+    ]  # fmt: skip
+    n = len(df)
+    for k in ("mu", "phi", "sigma"):
+        d = df[f"vi_{k}_mean"] - df[f"nuts_{k}_mean"]
+        z = (d / df[f"nuts_{k}_sd"]).abs()
+        sr = df[f"vi_{k}_sd"] / df[f"nuts_{k}_sd"]
+        lines.append(
+            f"{tex[k]} & {d.median():+.3f} & [{d.min():+.3f}, {d.max():+.3f}] & {z.median():.2f} & {z.max():.2f} & "
+            f"{sr.median():.2f} [{sr.min():.2f}, {sr.max():.2f}] & {(d > 0).sum()} / {n} \\\\"
+        )
+    lines += [r"\bottomrule", r"\end{tabular}"]
+    (common.TABLES / "tab_multi_agreement.tex").write_text("\n".join(lines) + "\n")
+
+
+def _acf(x: np.ndarray, k: int) -> float:
+    x = x - x.mean()
+    return float(np.dot(x[k:], x[:-k]) / np.dot(x, x))
+
+
+def data_summary_table(quick: bool = False):
+    """表：データの記述統計（ETF 2 本は個別に、Core30 は銘柄間の中央値と範囲）。統計量のみで、データそのものは載せない。"""
+    from scipy import stats
+
+    panel = load_panel(quick) + 0.0  # 平均除去済み。平均は別に計算する
+    raw = aligned_returns(list(panel.columns))
+    recs = {}
+    for c in panel.columns:
+        y = raw[c].dropna()
+        recs[c] = {
+            "mean": y.mean(), "sd": y.std(), "ann": y.std() * np.sqrt(252),
+            "skew": stats.skew(y), "kurt": stats.kurtosis(y, fisher=False),
+            "min": y.min(), "min_date": y.idxmin().strftime("%Y-%m-%d"),
+            "max": y.max(), "max_date": y.idxmax().strftime("%Y-%m-%d"),
+            "acf1": _acf(y.values**2, 1), "acf5": _acf(y.values**2, 5), "T": len(y),
+        }  # fmt: skip
+    st = pd.DataFrame(recs).T
+    etf = [c for c in ETF_CODES if c in st.index]
+    core = st.drop(index=etf)
+    head = (
+        r"系列 & 平均 & 標準偏差 & 年率ボラ & 歪度 & 尖度 & 最小 & 最大 "
+        r"& $\rho_1(y^2)$ & $\rho_5(y^2)$ \\"
+    )
+    lines = [r"\begin{tabular}{lrrrrrrrrr}", r"\toprule", head, r"\midrule"]
+    labels = {"13210": "1321（日経225）", "13060": "1306（TOPIX）"}
+    for c in etf:
+        r = st.loc[c]
+        lines.append(
+            f"{labels.get(c, c)} & {r['mean']:.3f} & {r['sd']:.2f} & {r['ann']:.1f} & "
+            f"{r['skew']:.2f} & {r['kurt']:.2f} & {r['min']:.2f} & "
+            f"{r['max']:.2f} & {r['acf1']:.2f} & {r['acf5']:.2f} \\\\"
+        )
+    if len(core):
+        lines.append(r"\addlinespace")
+        q = core[["mean", "sd", "ann", "skew", "kurt", "min", "max", "acf1", "acf5"]].astype(float)
+        med, lo, hi = q.median(), q.min(), q.max()
+
+        fmts = {"mean": ".3f", "sd": ".2f", "ann": ".1f", "skew": ".2f", "kurt": ".2f",
+                "min": ".2f", "max": ".2f", "acf1": ".2f", "acf5": ".2f"}  # fmt: skip
+        for lab, v in (
+            (f"Core30 {len(core)} 銘柄：中央値", med),
+            (r"\quad 最小", lo),
+            (r"\quad 最大", hi),
+        ):
+            lines.append(lab + " & " + " & ".join(f"{v[k]:{f}}" for k, f in fmts.items()) + r" \\")
+    lines += [r"\bottomrule", r"\end{tabular}"]
+    (common.TABLES / "tab_data_summary.tex").write_text("\n".join(lines) + "\n")
+    return st
+
+
 def main():
     args = common.parse_args(__doc__)
     cfg = common.RunConfig.quick() if args.quick else common.RunConfig()
@@ -230,6 +310,8 @@ def main():
     plotting.setup()
     fig(df, timing)
     table(df, timing)
+    agreement_table(df)
+    data_summary_table(args.quick)
     common.write_env(out, args, cfg, started)
     print(json.dumps(timing, indent=2))
     print(df[["code", "vi_phi_mean", "nuts_phi_mean", "vi_sigma_mean", "nuts_sigma_mean", "nuts_rhat_max"]]

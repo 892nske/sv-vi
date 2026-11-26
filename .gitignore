@@ -13,3 +13,6 @@ wheels/
 .env
 data/
 results/
+
+# LaTeX build output (local)
+docs/build/

@@ -141,7 +141,7 @@ def table_basic(agg: pd.DataFrame, scenarios, name: str, extra_param: str | None
                 ]  # fmt: skip
                 t_cell = str(T) if i == 0 else ""
                 lines.append(
-                    f"{t_cell} & {plotting.label(r['method'])} & " + " & ".join(cells) + r" \\"
+                    f"{t_cell} & {plotting.label_ja(r['method'])} & " + " & ".join(cells) + r" \\"
                 )
     lines += [r"\bottomrule", r"\end{tabular}"]
     common.TABLES.mkdir(parents=True, exist_ok=True)

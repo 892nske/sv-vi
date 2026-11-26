@@ -133,17 +133,19 @@ def table(rows: pd.DataFrame):
     d = rows[rows["variant"] == "all"]
     params = ["mu", "phi", "sigma", "rho", "nu"]
     tex = {"mu": r"$\mu$", "phi": r"$\phi$", "sigma": r"$\sigma$", "rho": r"$\rho$", "nu": r"$\nu$"}
+    ncol = 2 + len(params) + 1
     lines = [
-        r"\begin{tabular}{lll" + "r" * (len(params) + 1) + "}",
+        r"\begin{tabular}{ll" + "r" * (len(params) + 1) + "}",
         r"\toprule",
-        "銘柄 & モデル & 手法 & " + " & ".join(tex[p] for p in params) + r" & 時間[s] \\",
-        r"\midrule",
+        "モデル & 手法 & " + " & ".join(tex[p] for p in params) + r" & 時間[s] \\",
     ]
-    first = True
     for code in ETFS:
-        for model in MODELS:
+        lines += [r"\midrule", rf"\multicolumn{{{ncol}}}{{l}}{{{ETF_JA[code]}}} \\"]
+        for mi, model in enumerate(MODELS):
             sub = d[(d["code"] == code) & (d["model"] == model)].set_index("method")
             methods = METHODS if model == "basic" else ["NUTS", "ADVI-conditional"]
+            if mi:
+                lines.append(r"\addlinespace")
             for j, m in enumerate(methods):
                 if m not in sub.index:
                     continue
@@ -151,14 +153,11 @@ def table(rows: pd.DataFrame):
                 cells = []
                 for p in params:
                     v = r.get(f"{p}_mean", np.nan)
-                    cells.append("" if pd.isna(v) else f"{v:.3f} ({r[f'{p}_sd']:.3f})")
-                c0 = ETF_JA[code] if (model == "basic" and j == 0) else ""
+                    fmt = ".1f" if p == "nu" else ".3f"
+                    cells.append("" if pd.isna(v) else f"{v:{fmt}} ({r[f'{p}_sd']:{fmt}})")
                 c1 = MODEL_JA[model] if j == 0 else ""
-                if j == 0 and not first:
-                    lines.append(r"\addlinespace")
-                first = False
                 lines.append(
-                    f"{c0} & {c1} & {plotting.label(m)} & "
+                    f"{c1} & {plotting.label_ja(m)} & "
                     + " & ".join(cells)
                     + f" & {r['time_total']:.1f} \\\\"
                 )

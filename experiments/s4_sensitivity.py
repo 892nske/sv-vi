@@ -15,6 +15,7 @@ import common
 import jax
 import pandas as pd
 
+from sv_vi import plotting
 from sv_vi.logdensity import ModelSpec
 from sv_vi.simulate import SCENARIOS, simulate_sv
 
@@ -88,8 +89,10 @@ def table(rows: pd.DataFrame):
         if prev is not None and grp:
             lines.append(r"\addlinespace")
         prev = r["group"]
+        fam, _, setting = r["variant"].partition("/")
+        variant = f"{plotting.FAMILY_JA.get(fam, fam)}／{setting}"
         lines.append(
-            f"{grp} & {r['variant']} & {r['phi']:.3f} & {r['sigma']:.3f} & {r['phi_sd']:.2f} & "
+            f"{grp} & {variant} & {r['phi']:.3f} & {r['sigma']:.3f} & {r['phi_sd']:.2f} & "
             f"{r['sigma_sd']:.2f} & {r['h_sd']:.2f} & {r['h_rmse']:.3f} & {r['conv']:.0f} \\\\"
         )
     lines += [r"\bottomrule", r"\end{tabular}"]

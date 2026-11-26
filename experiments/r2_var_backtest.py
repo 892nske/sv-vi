@@ -136,9 +136,13 @@ def run_etf(code: str, ci: int, args, cfg, out, done: pd.DataFrame) -> list[dict
 
 
 def backtest_table(fc: pd.DataFrame, out) -> pd.DataFrame:
-    """表3：手法ごとの VaR 超過率・検定の p 値・平均対数予測スコア・1 日あたりの推定時間。"""
+    """表3：手法ごとの VaR 超過率・検定の p 値・平均対数予測スコア・GARCH-t との差の DM 検定・1 日あたりの推定時間。
+
+    NUTS は 5 日に 1 回しか回していない（評価日が違う）ので、この表には入れず、nuts_days_table で同じ日どうしを比べる。
+    """
     recs = []
     for code in ETFS:
+        ref = fc[(fc["code"] == code) & (fc["method"] == "GARCH-t")].set_index("date")["log_score"]
         for name in METHOD_JA:
             d = fc[(fc["code"] == code) & (fc["method"] == name)].sort_values("date")
             if d.empty:
@@ -149,8 +153,13 @@ def backtest_table(fc: pd.DataFrame, out) -> pd.DataFrame:
                 k = metrics.kupiec_pof(hits, a)
                 c = metrics.christoffersen(hits, a)
                 rec |= {f"rate{col[3:]}": k["rate"], f"exceed{col[3:]}": k["exceed"],
-                        f"p_pof{col[3:]}": k["p"], f"p_cc{col[3:]}": c["p_cc"]}  # fmt: skip
+                        f"p_pof{col[3:]}": k["p"], f"p_ind{col[3:]}": c["p_ind"],
+                        f"p_cc{col[3:]}": c["p_cc"]}  # fmt: skip
             rec["log_score"] = d["log_score"].mean()
+            if name != "GARCH-t":  # GARCH-t 自身との差は 0 なので検定しない
+                diff = d.set_index("date")["log_score"] - ref.reindex(d["date"]).values
+                dm = metrics.diebold_mariano(diff.values)
+                rec |= {"dm_diff": dm["mean"], "dm_p": dm["p"], "dm_lags": dm["lags"]}
             # warm start の効果を見るため、最初の 1 日（コンパイルを含む）を除いた中央値
             rec["time_median"] = d["time"].iloc[1:].median() if len(d) > 1 else d["time"].median()
             recs.append(rec)
@@ -158,23 +167,72 @@ def backtest_table(fc: pd.DataFrame, out) -> pd.DataFrame:
     tab.to_csv(out / "backtest.csv", index=False)
 
     lines = [
-        r"\begin{tabular}{llrrrrrrr}",
+        r"\begin{tabular}{lrrrrrrrrr}",
         r"\toprule",
-        r" & & \multicolumn{3}{c}{5\% VaR} & \multicolumn{2}{c}{1\% VaR} & & \\",
-        r"銘柄 & 手法 & 超過率 & $p_{\mathrm{POF}}$ & $p_{\mathrm{CC}}$ & 超過率 & $p_{\mathrm{POF}}$ & 予測スコア & 時間[s/日] \\",
-        r"\midrule",
-    ]
-    for i, code in enumerate(ETFS):
-        if i:
-            lines.append(r"\midrule")
-        for j, (_, r) in enumerate(tab[tab["code"] == code].iterrows()):
-            c0 = ETF_JA[code] if j == 0 else ""
+        r" & \multicolumn{3}{c}{5\% VaR} & \multicolumn{2}{c}{1\% VaR} & & \multicolumn{2}{c}{対 GARCH-$t$} & \\",
+        r"\cmidrule(lr){2-4} \cmidrule(lr){5-6} \cmidrule(lr){8-9}",
+        r"手法 & 超過率（回） & $p_{\mathrm{POF}}$ & $p_{\mathrm{CC}}$ & 超過率（回） & $p_{\mathrm{POF}}$ "
+        r"& 予測スコア & 差 & $p_{\mathrm{DM}}$ & 時間[s/日] \\",
+    ]  # fmt: skip
+    for code in ETFS:
+        lines += [r"\midrule", rf"\multicolumn{{10}}{{l}}{{{ETF_JA[code]}}} \\"]
+        rows = tab[(tab["code"] == code) & (tab["method"] != "NUTS")]
+        for _, r in rows.iterrows():
+            dm = (
+                ("--", "--")
+                if r["method"] == "GARCH-t"
+                else (f"{r['dm_diff']:+.3f}", f"{r['dm_p']:.2f}")
+            )
             lines.append(
-                f"{c0} & {METHOD_JA[r['method']]} & {r['rate5']:.3f} & {r['p_pof5']:.2f} & {r['p_cc5']:.2f} & "
-                f"{r['rate1']:.3f} & {r['p_pof1']:.2f} & {r['log_score']:.3f} & {r['time_median']:.2f} \\\\"
+                f"{METHOD_JA[r['method']]} & {r['rate5']:.3f} ({r['exceed5']}) & {r['p_pof5']:.2f} & "
+                f"{r['p_cc5']:.2f} & {r['rate1']:.3f} ({r['exceed1']}) & {r['p_pof1']:.2f} & "
+                f"{r['log_score']:.3f} & {dm[0]} & {dm[1]} & {r['time_median']:.2f} \\\\"
             )
     lines += [r"\bottomrule", r"\end{tabular}"]
     (common.TABLES / "tab3_var_backtest.tex").write_text("\n".join(lines) + "\n")
+    return tab
+
+
+NUTS_DAY_METHODS = ["NUTS", "SV-cond(warm)", "SV-cond(cold)", "SV-meanfield", "GARCH-t"]
+
+
+def nuts_days_table(fc: pd.DataFrame, out) -> pd.DataFrame:
+    """表3b：NUTS を回した日（5 日に 1 回）だけで、各手法を同じ日どうしで比べる。"""
+    recs = []
+    for code in ETFS:
+        d = fc[fc["code"] == code]
+        days = d[d["method"] == "NUTS"]["date"]
+        v = d.pivot(index="date", columns="method", values="var5").loc[days]
+        s = d.pivot(index="date", columns="method", values="log_score").loc[days]
+        y = d.groupby("date")["y_obs"].first().loc[days]
+        for m in NUTS_DAY_METHODS:
+            recs.append({
+                "code": code, "method": m, "n": len(days),
+                "exceed5": int((y < v[m]).sum()), "log_score": s[m].mean(),
+                "var5_mean": v[m].mean(),
+                "var5_absdiff_nuts": np.nan if m == "NUTS" else (v[m] - v["NUTS"]).abs().median(),
+            })  # fmt: skip
+    tab = pd.DataFrame(recs)
+    tab.to_csv(out / "nuts_days.csv", index=False)
+    lines = [
+        r"\begin{tabular}{lrrrr}",
+        r"\toprule",
+        r"手法 & 5\% VaR 超過（回） & 予測スコア & 5\% VaR の平均 & NUTS との VaR の差 \\",
+    ]
+    for code in ETFS:
+        sub = tab[tab["code"] == code]
+        lines += [
+            r"\midrule",
+            rf"\multicolumn{{5}}{{l}}{{{ETF_JA[code]}（{sub['n'].iloc[0]} 日）}} \\",
+        ]
+        for _, r in sub.iterrows():
+            diff = "--" if pd.isna(r["var5_absdiff_nuts"]) else f"{r['var5_absdiff_nuts']:.3f}"
+            name = "SV・NUTS" if r["method"] == "NUTS" else METHOD_JA[r["method"]]
+            lines.append(
+                f"{name} & {r['exceed5']} & {r['log_score']:.3f} & {r['var5_mean']:.2f} & {diff} \\\\"
+            )
+    lines += [r"\bottomrule", r"\end{tabular}"]
+    (common.TABLES / "tab3b_nuts_days.tex").write_text("\n".join(lines) + "\n")
     return tab
 
 
@@ -257,6 +315,7 @@ def main():
             fc = pd.concat([fc, pd.DataFrame(new)], ignore_index=True)
             fc.to_csv(csv, index=False)
     tab = backtest_table(fc, out)
+    nuts_days_table(fc, out)
     wc = warm_vs_cold(fc, out)
     plotting.setup()
     fig_var(fc)
